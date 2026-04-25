@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoodIntel Backend</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="intro">
+        <div>
+          <p class="kicker">FoodIntel Backend</p>
+          <h1>Intelligent food recognition and nutrition analysis API.</h1>
+          <p class="lede">
+            FastAPI, MongoDB, and PyTorch working together for authentication,
+            food-image recognition, nutrition estimation, meal history, and
+            weekly reporting.
+          </p>
+        </div>
+        <div class="link-row">
+          <a href="/docs">Swagger UI</a>
+          <a href="/redoc">ReDoc</a>
+          <a href="/health">Health JSON</a>
+          <a href="/openapi.json">OpenAPI Schema</a>
+        </div>
+      </section>
+
+      <section class="grid three">
+        <article class="card status-card">
+          <h2>API status</h2>
+          <div class="status-list">
+            <div>
+              <span>Backend</span>
+              <strong>Online</strong>
+            </div>
+            <div>
+              <span>Database</span>
+              <strong>{{ "Connected" if database_connected else "Unavailable" }}</strong>
+            </div>
+            <div>
+              <span>Model</span>
+              <strong>{{ "Loaded" if model_status.model_loaded else "Missing" }}</strong>
+            </div>
+            <div>
+              <span>Environment</span>
+              <strong>{{ environment }}</strong>
+            </div>
+          </div>
+          {% if database_error %}
+          <p class="note">Database detail: {{ database_error }}</p>
+          {% endif %}
+          {% if model_status.error %}
+          <p class="note">Model detail: {{ model_status.error }}</p>
+          {% endif %}
+        </article>
+
+        <article class="card">
+          <h2>Core features</h2>
+          <ul class="plain-list">
+            <li>JWT authentication and protected routes</li>
+            <li>Image upload with model inference</li>
+            <li>Nutrition estimation per serving</li>
+            <li>Rule-based health score and recommendations</li>
+            <li>Meal history and weekly reports</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h2>Model status</h2>
+          <dl class="detail-list">
+            <div><dt>Loaded</dt><dd>{{ model_status.model_loaded }}</dd></div>
+            <div><dt>Version</dt><dd>{{ model_status.model_version }}</dd></div>
+            <div><dt>Classes</dt><dd>{{ model_status.class_count }}</dd></div>
+          </dl>
+          <p class="note">
+            If the model file is missing, the API still starts and prediction
+            routes return a clear 503 response.
+          </p>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Architecture</h2>
+        <div class="grid two">
+          <div>
+            <p>Frontend: Next.js + TypeScript + Tailwind + shadcn/ui</p>
+            <p>Backend: FastAPI + Motor + JWT + Pydantic</p>
+            <p>Model: PyTorch transfer learning with MobileNetV3 or EfficientNet</p>
+            <p>Data: MongoDB for users, foods, and meal logs</p>
+          </div>
+          <div>
+            <p>Storage: Local uploads by default, Cloudinary optional</p>
+            <p>Docs: Swagger UI, ReDoc, OpenAPI JSON, markdown docs</p>
+            <p>Deployment: Local, Docker, Render, Railway, Fly.io</p>
+            <p>Scope: User-side functionality only for this version</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid three">
+        <article class="card">
+          <h2>Supported endpoints</h2>
+          <ul class="plain-list compact">
+            <li>`POST /api/v1/auth/register`</li>
+            <li>`POST /api/v1/auth/login`</li>
+            <li>`GET /api/v1/auth/me`</li>
+            <li>`PATCH /api/v1/users/me`</li>
+            <li>`GET /api/v1/foods`</li>
+            <li>`GET /api/v1/foods/{slug}`</li>
+            <li>`POST /api/v1/foods/seed`</li>
+            <li>`POST /api/v1/predictions/image`</li>
+            <li>`GET /api/v1/meals`</li>
+            <li>`GET /api/v1/reports/weekly`</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h2>Model and dataset notes</h2>
+          <p>
+            The training pipeline supports both custom ImageFolder datasets for
+            Nigerian foods and a Food-101 baseline path through torchvision.
+          </p>
+          <p>
+            Actual model quality depends on the dataset. Reported nutrition
+            values are placeholders for academic MVP use and should be verified
+            before real deployment.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Run locally</h2>
+          <ol class="steps">
+            <li>Create `.env` from `.env.example`.</li>
+            <li>Install `backend/requirements.txt`.</li>
+            <li>Start MongoDB or `docker compose up`.</li>
+            <li>Run `uvicorn backend.app.main:app --reload`.</li>
+            <li>Open `/docs` and seed foods in development.</li>
+          </ol>
+        </article>
+      </section>
+
+      <section class="card disclaimer">
+        <h2>Ethical note</h2>
+        <p>
+          Nutritional outputs and health scores are estimates for educational
+          use. They are not medical advice and should not be used to diagnose
+          disease or nutrient deficiency.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

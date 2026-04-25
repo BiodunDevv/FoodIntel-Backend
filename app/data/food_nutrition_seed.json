@@ -1,0 +1,218 @@
+[
+  {
+    "name": "Jollof Rice",
+    "slug": "jollof_rice",
+    "category": "Rice Meal",
+    "description": "Popular West African rice dish with tomato and spice base.",
+    "default_serving_size_g": 250,
+    "nutrition_per_100g": {"calories": 150, "protein": 3.5, "carbs": 28, "fat": 4.0, "fiber": 1.5, "sugar": 2.0, "sodium": 300},
+    "is_local_food": true
+  },
+  {
+    "name": "Fried Rice",
+    "slug": "fried_rice",
+    "category": "Rice Meal",
+    "description": "Rice stir-fried with vegetables and oil.",
+    "default_serving_size_g": 250,
+    "nutrition_per_100g": {"calories": 170, "protein": 4.0, "carbs": 25.0, "fat": 6.0, "fiber": 2.0, "sugar": 2.5, "sodium": 350},
+    "is_local_food": true
+  },
+  {
+    "name": "Rice And Stew",
+    "slug": "rice_and_stew",
+    "category": "Rice Meal",
+    "description": "Plain rice served with tomato-based stew.",
+    "default_serving_size_g": 250,
+    "nutrition_per_100g": {"calories": 155, "protein": 3.4, "carbs": 29.0, "fat": 3.8, "fiber": 1.2, "sugar": 2.1, "sodium": 280},
+    "is_local_food": true
+  },
+  {
+    "name": "Egusi Soup",
+    "slug": "egusi_soup",
+    "category": "Soup",
+    "description": "Melon seed soup commonly paired with swallow foods.",
+    "default_serving_size_g": 200,
+    "nutrition_per_100g": {"calories": 220, "protein": 8.0, "carbs": 6.0, "fat": 18.0, "fiber": 2.0, "sugar": 1.0, "sodium": 400},
+    "is_local_food": true
+  },
+  {
+    "name": "Vegetable Soup",
+    "slug": "vegetable_soup",
+    "category": "Soup",
+    "description": "Leafy vegetable soup prepared with stock, oil, and protein.",
+    "default_serving_size_g": 200,
+    "nutrition_per_100g": {"calories": 145, "protein": 6.0, "carbs": 5.0, "fat": 11.0, "fiber": 2.5, "sugar": 1.0, "sodium": 340},
+    "is_local_food": true
+  },
+  {
+    "name": "Okro Soup",
+    "slug": "okro_soup",
+    "category": "Soup",
+    "description": "Okra-based soup with vegetables and protein.",
+    "default_serving_size_g": 200,
+    "nutrition_per_100g": {"calories": 120, "protein": 5.5, "carbs": 6.0, "fat": 8.0, "fiber": 2.7, "sugar": 1.3, "sodium": 300},
+    "is_local_food": true
+  },
+  {
+    "name": "Pepper Soup",
+    "slug": "pepper_soup",
+    "category": "Soup",
+    "description": "Spiced broth-based soup often served with meat or fish.",
+    "default_serving_size_g": 220,
+    "nutrition_per_100g": {"calories": 95, "protein": 9.0, "carbs": 2.0, "fat": 5.0, "fiber": 0.6, "sugar": 0.3, "sodium": 330},
+    "is_local_food": true
+  },
+  {
+    "name": "Afang Soup",
+    "slug": "afang_soup",
+    "category": "Soup",
+    "description": "Leafy soup made with afang and waterleaf.",
+    "default_serving_size_g": 200,
+    "nutrition_per_100g": {"calories": 155, "protein": 7.0, "carbs": 5.0, "fat": 11.5, "fiber": 3.0, "sugar": 0.9, "sodium": 320},
+    "is_local_food": true
+  },
+  {
+    "name": "Oha Soup",
+    "slug": "oha_soup",
+    "category": "Soup",
+    "description": "Traditional soup made with oha leaves.",
+    "default_serving_size_g": 200,
+    "nutrition_per_100g": {"calories": 150, "protein": 6.5, "carbs": 6.0, "fat": 10.5, "fiber": 2.5, "sugar": 0.8, "sodium": 310},
+    "is_local_food": true
+  },
+  {
+    "name": "Beans",
+    "slug": "beans",
+    "category": "Legume",
+    "description": "Cooked beans dish with strong fiber and protein contribution.",
+    "default_serving_size_g": 250,
+    "nutrition_per_100g": {"calories": 130, "protein": 8.0, "carbs": 22.0, "fat": 1.0, "fiber": 7.0, "sugar": 1.0, "sodium": 100},
+    "is_local_food": true
+  },
+  {
+    "name": "Moi Moi",
+    "slug": "moi_moi",
+    "category": "Legume",
+    "description": "Steamed bean pudding.",
+    "default_serving_size_g": 180,
+    "nutrition_per_100g": {"calories": 160, "protein": 9.0, "carbs": 14.0, "fat": 7.0, "fiber": 4.0, "sugar": 1.5, "sodium": 250},
+    "is_local_food": true
+  },
+  {
+    "name": "Akara",
+    "slug": "akara",
+    "category": "Snack",
+    "description": "Deep-fried bean cake.",
+    "default_serving_size_g": 150,
+    "nutrition_per_100g": {"calories": 290, "protein": 10.0, "carbs": 22.0, "fat": 18.0, "fiber": 5.0, "sugar": 2.0, "sodium": 300},
+    "is_local_food": true
+  },
+  {
+    "name": "Plantain",
+    "slug": "plantain",
+    "category": "Side",
+    "description": "Fried or boiled plantain side dish.",
+    "default_serving_size_g": 150,
+    "nutrition_per_100g": {"calories": 180, "protein": 1.3, "carbs": 31.0, "fat": 6.0, "fiber": 2.3, "sugar": 14.0, "sodium": 5},
+    "is_local_food": true
+  },
+  {
+    "name": "Yam",
+    "slug": "yam",
+    "category": "Root Tuber",
+    "description": "Boiled or processed yam dish.",
+    "default_serving_size_g": 220,
+    "nutrition_per_100g": {"calories": 118, "protein": 1.5, "carbs": 27.0, "fat": 0.2, "fiber": 4.0, "sugar": 0.5, "sodium": 6},
+    "is_local_food": true
+  },
+  {
+    "name": "Amala",
+    "slug": "amala",
+    "category": "Swallow",
+    "description": "Yam-flour-based swallow meal.",
+    "default_serving_size_g": 240,
+    "nutrition_per_100g": {"calories": 145, "protein": 2.0, "carbs": 33.0, "fat": 0.3, "fiber": 2.0, "sugar": 0.6, "sodium": 8},
+    "is_local_food": true
+  },
+  {
+    "name": "Asaro",
+    "slug": "asaro",
+    "category": "Root Tuber",
+    "description": "Yam porridge cooked with oil, peppers, and seasoning.",
+    "default_serving_size_g": 250,
+    "nutrition_per_100g": {"calories": 135, "protein": 2.2, "carbs": 24.0, "fat": 4.0, "fiber": 3.0, "sugar": 1.2, "sodium": 170},
+    "is_local_food": true
+  },
+  {
+    "name": "Abacha",
+    "slug": "abacha",
+    "category": "Salad",
+    "description": "African salad made from cassava strips and palm oil dressing.",
+    "default_serving_size_g": 220,
+    "nutrition_per_100g": {"calories": 165, "protein": 3.0, "carbs": 18.0, "fat": 9.0, "fiber": 3.5, "sugar": 1.1, "sodium": 190},
+    "is_local_food": true
+  },
+  {
+    "name": "Boli",
+    "slug": "boli",
+    "category": "Snack",
+    "description": "Roasted plantain, often served with sauce or groundnut.",
+    "default_serving_size_g": 180,
+    "nutrition_per_100g": {"calories": 150, "protein": 1.2, "carbs": 34.0, "fat": 0.4, "fiber": 2.5, "sugar": 13.0, "sodium": 4},
+    "is_local_food": true
+  },
+  {
+    "name": "Chin Chin",
+    "slug": "chin_chin",
+    "category": "Snack",
+    "description": "Crunchy fried dough snack.",
+    "default_serving_size_g": 80,
+    "nutrition_per_100g": {"calories": 430, "protein": 6.0, "carbs": 60.0, "fat": 18.0, "fiber": 1.0, "sugar": 18.0, "sodium": 220},
+    "is_local_food": true
+  },
+  {
+    "name": "Meat Pie",
+    "slug": "meat_pie",
+    "category": "Snack",
+    "description": "Baked pastry filled with seasoned meat and vegetables.",
+    "default_serving_size_g": 120,
+    "nutrition_per_100g": {"calories": 320, "protein": 8.0, "carbs": 28.0, "fat": 19.0, "fiber": 1.8, "sugar": 2.3, "sodium": 280},
+    "is_local_food": true
+  },
+  {
+    "name": "Puff Puff",
+    "slug": "puff_puff",
+    "category": "Snack",
+    "description": "Deep-fried sweet dough snack.",
+    "default_serving_size_g": 90,
+    "nutrition_per_100g": {"calories": 350, "protein": 5.0, "carbs": 53.0, "fat": 13.0, "fiber": 1.2, "sugar": 19.0, "sodium": 180},
+    "is_local_food": true
+  },
+  {
+    "name": "Suya",
+    "slug": "suya",
+    "category": "Protein",
+    "description": "Spiced grilled meat skewer.",
+    "default_serving_size_g": 120,
+    "nutrition_per_100g": {"calories": 245, "protein": 28.0, "carbs": 3.0, "fat": 13.0, "fiber": 0.5, "sugar": 0.4, "sodium": 420},
+    "is_local_food": true
+  },
+  {
+    "name": "Nkwobi",
+    "slug": "nkwobi",
+    "category": "Protein",
+    "description": "Spiced cow-foot delicacy served with palm oil sauce.",
+    "default_serving_size_g": 180,
+    "nutrition_per_100g": {"calories": 210, "protein": 18.0, "carbs": 4.0, "fat": 14.0, "fiber": 0.4, "sugar": 0.2, "sodium": 360},
+    "is_local_food": true
+  },
+  {
+    "name": "Noodles",
+    "slug": "noodles",
+    "category": "Processed Meal",
+    "description": "Instant noodles or noodle-based mixed meal.",
+    "default_serving_size_g": 200,
+    "nutrition_per_100g": {"calories": 190, "protein": 5.0, "carbs": 26.0, "fat": 7.0, "fiber": 2.0, "sugar": 2.0, "sodium": 450},
+    "is_local_food": true
+  }
+]
