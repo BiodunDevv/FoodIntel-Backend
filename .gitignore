@@ -6,14 +6,4 @@ __pycache__/
 *.pyc
 uploads/*
 !uploads/.gitkeep
-ml/dataset_master/
-ml/dataset_live/
-ml/dataset_feedback/
-ml/dataset_feedback_live/
-ml/raw_nigerian_foods_a/
-ml/raw_nigerian_foods_b/
-ml/raw_sources/
-ml/reports/
-ml/models/*
-!ml/models/food_model_extensive.pt
 .DS_Store

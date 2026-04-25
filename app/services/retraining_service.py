@@ -14,7 +14,7 @@ import httpx
 from PIL import Image
 from pymongo import MongoClient
 
-from app.config.settings import BACKEND_DIR, ROOT_DIR, get_settings
+from app.config.settings import ROOT_DIR, get_settings
 from app.services.ml_service import ml_service
 
 
@@ -226,7 +226,7 @@ class RetrainingService:
         settings = get_settings()
         command = [
             sys.executable,
-            str(BACKEND_DIR / "ml/train.py"),
+            str(ROOT_DIR / "ml/train.py"),
             "--dataset-source",
             "imagefolder",
             "--data-dir",
@@ -244,7 +244,7 @@ class RetrainingService:
             "--classes-output",
             str(settings.resolved_class_names_path),
             "--reports-dir",
-            str(BACKEND_DIR / "ml/reports"),
+            str(ROOT_DIR / "ml/reports"),
             "--device",
             settings.retrain_device,
             "--image-size",
