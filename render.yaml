@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: foodintel-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: ENVIRONMENT
+        value: production
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: MODEL_PATH
+        value: ml/models/food_model_extensive.pt
+      - key: CLASS_NAMES_PATH
+        value: ml/classes.json
+      - key: RETRAIN_ON_FEEDBACK
+        value: "false"
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "10"
+      - key: RETRAIN_DEVICE
+        value: cpu
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: foodintel_db
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

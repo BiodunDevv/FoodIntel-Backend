@@ -1,0 +1,21 @@
+{
+  "jollof rice": "jollof_rice",
+  "jollof_rice": "jollof_rice",
+  "fried rice": "fried_rice",
+  "fried_rice": "fried_rice",
+  "egusi soup": "egusi_soup",
+  "egusi_soup": "egusi_soup",
+  "eba": "eba",
+  "garri": "eba",
+  "pounded yam": "pounded_yam",
+  "pounded_yam": "pounded_yam",
+  "beans": "beans",
+  "bean porridge": "beans",
+  "moi moi": "moi_moi",
+  "moi_moi": "moi_moi",
+  "akara": "akara",
+  "plantain": "plantain",
+  "fried plantain": "plantain",
+  "noodles": "noodles",
+  "indomie": "noodles"
+}

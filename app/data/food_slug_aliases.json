@@ -1,0 +1,56 @@
+{
+  "jollof_rice": [
+    "jollof rice",
+    "rice, jollof",
+    "jollof rice, cooked",
+    "jollof",
+    "nigerian jollof rice"
+  ],
+  "fried_rice": ["fried rice", "rice, fried"],
+  "rice_and_stew": [
+    "rice and stew",
+    "plain rice and stew",
+    "white rice and stew",
+    "rice & stew",
+    "rice with stew"
+  ],
+  "egusi_soup": ["egusi soup", "egusi", "melon seed soup"],
+  "vegetable_soup": ["vegetable soup", "efo riro", "leafy vegetable soup"],
+  "okro_soup": ["okro soup", "okra soup", "okra", "okro", "draw soup"],
+  "pepper_soup": ["pepper soup", "pepper-soup", "pepper broth"],
+  "afang_soup": ["afang soup"],
+  "oha_soup": ["oha soup", "ora soup"],
+  "beans": ["beans", "ewa agoyin", "ewa-agoyin", "cowpeas cooked"],
+  "moi_moi": [
+    "moi moi",
+    "moi-moi",
+    "moin moin",
+    "moin-moin",
+    "moi moi / moin-moin",
+    "bean pudding"
+  ],
+  "akara": ["akara", "bean cake", "bean fritter", "bean fritters"],
+  "plantain": [
+    "plantain",
+    "fried plantain",
+    "fried plantains",
+    "dodo",
+    "roasted plantain",
+    "ripe plantain",
+    "unripe plantain",
+    "plantain chips"
+  ],
+  "yam": ["yam", "boiled yam"],
+  "amala": ["amala"],
+  "asaro": ["asaro", "yam porridge"],
+  "abacha": ["abacha", "african salad"],
+  "boli": ["boli", "bole", "roasted plantain"],
+  "chin_chin": ["chin chin"],
+  "meat_pie": ["meat pie", "meat-pie"],
+  "puff_puff": ["puff puff", "puff-puff"],
+  "suya": ["suya", "beef suya", "spiced grilled meat"],
+  "nkwobi": ["nkwobi", "cow foot delicacy", "spicy cow foot"],
+  "noodles": ["noodles", "instant noodles"],
+  "eba": ["eba"],
+  "pounded_yam": ["pounded yam"]
+}

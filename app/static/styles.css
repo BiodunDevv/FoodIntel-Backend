@@ -1,0 +1,150 @@
+:root {
+  --bg: #f5f5f4;
+  --surface: #ffffff;
+  --surface-alt: #fafaf9;
+  --border: #d6d3d1;
+  --text: #1c1917;
+  --muted: #57534e;
+  --accent: #b45309;
+  --accent-soft: #fef3c7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  line-height: 1.55;
+}
+
+a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.page {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+}
+
+.intro {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.kicker {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+h1,
+h2 {
+  margin: 0 0 12px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  max-width: 720px;
+}
+
+h2 {
+  font-size: 1.05rem;
+}
+
+.lede,
+.note,
+p,
+li,
+dd {
+  color: var(--muted);
+}
+
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.link-row a {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card {
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.status-list,
+.detail-list {
+  display: grid;
+  gap: 12px;
+}
+
+.status-list div,
+.detail-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ebe7e3;
+}
+
+.plain-list,
+.steps {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.plain-list.compact li {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+}
+
+.disclaimer {
+  background: #fffdf7;
+}
+
+@media (max-width: 840px) {
+  .grid.three,
+  .grid.two {
+    grid-template-columns: 1fr;
+  }
+
+  .page {
+    width: min(100% - 20px, 1120px);
+    padding-top: 20px;
+  }
+}
