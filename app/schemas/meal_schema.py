@@ -5,6 +5,15 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.food_schema import NutritionValues
 
 
+class MealFeedbackPublic(BaseModel):
+    is_correct: bool
+    status: str
+    corrected_slug: str
+    corrected_food: str
+    notes: str | None = None
+    submitted_at: datetime
+
+
 class MealLogPublic(BaseModel):
     id: str
     user_id: str
@@ -18,6 +27,7 @@ class MealLogPublic(BaseModel):
     health_score: int = Field(..., ge=0, le=100)
     recommendations: list[str]
     model_version: str
+    feedback: MealFeedbackPublic | None = None
     created_at: datetime
 
     model_config = ConfigDict(

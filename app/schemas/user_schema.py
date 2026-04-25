@@ -7,6 +7,38 @@ from pydantic import BaseModel, EmailStr, Field
 GoalType = Literal["weight_loss", "muscle_gain", "maintenance", "general_health"]
 
 
+class UserBadge(BaseModel):
+    id: str
+    label: str
+    description: str
+    unlocked: bool
+    progress_current: int
+    progress_target: int
+    unlocked_at: datetime | None = None
+
+
+class UserQuest(BaseModel):
+    id: str
+    label: str
+    completed: bool
+    xp: int
+
+
+class UserProgressPayload(BaseModel):
+    level: int
+    xp_total: int
+    xp_into_level: int
+    xp_for_next_level: int
+    streak_days: int
+    total_scans: int
+    nutrition_ready_meals: int
+    feedback_count: int
+    correction_count: int
+    high_confidence_scans: int
+    badges: list[UserBadge]
+    quests: list[UserQuest]
+
+
 class UserPublic(BaseModel):
     id: str = Field(..., examples=["6629a62f0d24ed2cf9f4d001"])
     full_name: str

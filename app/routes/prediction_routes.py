@@ -195,6 +195,13 @@ async def submit_prediction_feedback(
         )
 
     feedback_status = "confirmed" if payload.is_correct else "auto_approved"
+    created_at = datetime.now(timezone.utc)
+    cleaned_notes = payload.notes.strip() if payload.notes else None
+    corrected_food = (
+        meal["predicted_food"]
+        if payload.is_correct
+        else corrected_slug.replace("_", " ").title()
+    )
     feedback_document = {
         "user_id": current_user.id,
         "meal_id": payload.meal_id,
@@ -204,11 +211,26 @@ async def submit_prediction_feedback(
         "confidence": meal["confidence"],
         "is_correct": payload.is_correct,
         "corrected_slug": corrected_slug or meal["predicted_slug"],
-        "notes": payload.notes.strip() if payload.notes else None,
+        "notes": cleaned_notes,
         "status": feedback_status,
-        "created_at": datetime.now(timezone.utc),
+        "created_at": created_at,
     }
     result = await get_collection("prediction_feedback").insert_one(feedback_document)
+    await get_collection("meal_logs").update_one(
+        {"_id": meal_object_id, "user_id": current_user.id},
+        {
+            "$set": {
+                "feedback": {
+                    "is_correct": payload.is_correct,
+                    "status": feedback_status,
+                    "corrected_slug": corrected_slug or meal["predicted_slug"],
+                    "corrected_food": corrected_food,
+                    "notes": cleaned_notes,
+                    "submitted_at": created_at,
+                }
+            }
+        },
+    )
     retraining_decision = (
         retraining_service.request_retraining(
             await get_collection("prediction_feedback").count_documents(
