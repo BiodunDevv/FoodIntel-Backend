@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
     access_token_expire_minutes: int = Field(1440, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     upload_dir: str = Field("backend/uploads", alias="UPLOAD_DIR")
-    model_path: str = Field("ml/models/food_model.pt", alias="MODEL_PATH")
+    model_path: str = Field("ml/models/food_model_extensive.pt", alias="MODEL_PATH")
     class_names_path: str = Field("ml/classes.json", alias="CLASS_NAMES_PATH")
     environment: Literal["development", "test", "production"] = Field(
         "development", alias="ENVIRONMENT"

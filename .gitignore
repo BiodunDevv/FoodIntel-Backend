@@ -4,6 +4,23 @@
 .mypy_cache/
 __pycache__/
 *.pyc
+
+# Runtime uploads
 uploads/*
 !uploads/.gitkeep
+
+# Local ML datasets and generated training artifacts
+ml/dataset_master/
+ml/dataset_live/
+ml/dataset_feedback/
+ml/dataset_feedback_live/
+ml/raw_nigerian_foods_a/
+ml/raw_nigerian_foods_b/
+ml/raw_sources/
+ml/reports/
+
+# Keep only the deployed inference checkpoint in Git
+ml/models/*
+!ml/models/food_model_extensive.pt
+
 .DS_Store
