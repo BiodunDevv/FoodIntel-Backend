@@ -72,3 +72,4 @@ git push -u origin main
 - Backend API: Render Web Service
 - Database: MongoDB Atlas
 - Retraining: separate worker or offline job, not the public web service
+# FoodIntel-Backend
