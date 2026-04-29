@@ -14,6 +14,7 @@ ml/dataset_master/
 ml/dataset_live/
 ml/dataset_feedback/
 ml/dataset_feedback_live/
+ml/data/raw/
 ml/raw_nigerian_foods_a/
 ml/raw_nigerian_foods_b/
 ml/raw_sources/
