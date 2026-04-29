@@ -34,6 +34,8 @@ CANONICAL_NAMES: dict[str, str] = {
     "abacha and ugba(african salad)": "abacha",
     "afang soup": "afang_soup",
     "akara": "akara",
+    "akarabread": "akara",
+    "akara bread": "akara",
     "akara and eko": "akara",
     "akara and eko akamu": "akara",
     "akara and eko-akamu": "akara",
@@ -50,20 +52,27 @@ CANONICAL_NAMES: dict[str, str] = {
     "draw soup": "draw_soup",
     "egusi": "egusi_soup",
     "egusi soup": "egusi_soup",
+    "egusi": "egusi_soup",
     "ewang": "ekwang",
     "ekwang": "ekwang",
     "eru": "eru",
     "ewa agoyin": "beans",
     "ewa-agoyin": "beans",
     "ewedu soup": "ewedu_soup",
+    "ewedu": "ewedu_soup",
     "fried plantain": "plantain",
     "fried plantains dodo": "plantain",
     "fried plantains (dodo)": "plantain",
+    "garri and groundnut": "soaking_garri",
+    "garriandgrounut": "soaking_garri",
+    "jellof": "jollof_rice_nigeria",
+    "jollof": "jollof_rice_nigeria",
     "kilishi": "kilishi",
     "meat pie": "meat_pie",
     "meat-pie": "meat_pie",
     "moi moi": "moi_moi",
     "moi-moi": "moi_moi",
+    "moimoi": "moi_moi",
     "moin moin": "moi_moi",
     "moin-moin": "moi_moi",
     "ndole": "ndole",
@@ -71,8 +80,12 @@ CANONICAL_NAMES: dict[str, str] = {
     "noodles": "noodles",
     "ofe akwu": "ofe_akwu",
     "ofe nsala": "ofe_nsala",
+    "ofeowerri": "ofe_owerri",
+    "ofe owerri": "ofe_owerri",
+    "ogbono": "ogbono_soup",
     "oha soup": "oha_soup",
     "oha_soup": "oha_soup",
+    "okra": "okro_soup",
     "okro soup": "okro_soup",
     "ora soup": "ora_soup",
     "palm nut soup": "palm_nut_soup",
@@ -82,6 +95,7 @@ CANONICAL_NAMES: dict[str, str] = {
     "plantain": "plantain",
     "puff puff": "puff_puff",
     "puff-puff": "puff_puff",
+    "pufpuf": "puff_puff",
     "rice and stew": "rice_and_stew",
     "shawarma": "shawarma",
     "soaking garri": "soaking_garri",
@@ -293,11 +307,16 @@ def discover_images(
 
     records: list[ImageRecord] = []
     unavailable: list[Source] = []
+    seen_paths: set[Path] = set()
     for source in sources:
         if not source.path.exists():
             unavailable.append(source)
             continue
         for image_path in iter_image_paths(source, output_dir):
+            resolved_path = image_path.resolve()
+            if resolved_path in seen_paths:
+                continue
+            seen_paths.add(resolved_path)
             raw_class_name = infer_class_name(image_path, source.path)
             records.append(
                 ImageRecord(
