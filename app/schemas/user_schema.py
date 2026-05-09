@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 GoalType = Literal["weight_loss", "muscle_gain", "maintenance", "general_health"]
@@ -59,3 +59,15 @@ class UserUpdateRequest(BaseModel):
     weight_kg: float | None = Field(default=None, ge=1, le=500)
     goal: GoalType | None = None
     activity_level: str | None = Field(default=None, max_length=100)
+
+    @field_validator("goal", mode="before")
+    @classmethod
+    def normalize_goal_aliases(cls, value: str | None) -> str | None:
+        if value is None or value == "":
+            return None
+        return {
+            "lose_weight": "weight_loss",
+            "gain_muscle": "muscle_gain",
+            "maintain": "maintenance",
+            "eat_healthier": "general_health",
+        }.get(value, value)
