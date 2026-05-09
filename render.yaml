@@ -18,11 +18,13 @@ services:
       - key: CLASS_NAMES_PATH
         value: ml/classes.json
       - key: RETRAIN_ON_FEEDBACK
-        value: "false"
-      - key: MAX_UPLOAD_SIZE_MB
-        value: "10"
+        value: "true"
+      - key: RETRAIN_MIN_FEEDBACK_SAMPLES
+        value: "5"
       - key: RETRAIN_DEVICE
         value: cpu
+      - key: MAX_UPLOAD_SIZE_MB
+        value: "10"
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB_NAME
@@ -30,4 +32,6 @@ services:
       - key: JWT_SECRET_KEY
         sync: false
       - key: CORS_ORIGINS
+        sync: false
+      - key: ADMIN_SECRET
         sync: false
