@@ -23,21 +23,21 @@ from app.services.nutrition_service import calculate_serving_nutrition
 from app.services.recommendation_service import generate_recommendations
 from app.services.retraining_service import retraining_service
 from app.services.storage_service import storage_service
-from app.utils.image import open_image, open_image_from_url, validate_upload_image
+from app.utils.image import open_image_from_bytes, open_image_from_url, validate_upload_image
 from app.utils.object_id import serialize_mongo_document
 
 
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
 
 
-def raise_low_confidence_http(exc: LowConfidencePredictionError) -> HTTPException:
+def build_low_confidence_http_error(exc: LowConfidencePredictionError) -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         detail={
             "code": "unsupported_or_uncertain_image",
             "message": (
-                "I am not confident this image is one of the supported food classes. "
-                "Please upload a clear Nigerian food photo."
+                "FoodIntel did not confidently match this image to a supported food, "
+                "so no meal was logged. Please upload a clear photo of one supported meal."
             ),
             "top_prediction": exc.label,
             "confidence": exc.confidence,
@@ -147,6 +147,10 @@ async def persist_prediction_result(
     responses={
         400: {"model": ErrorResponse, "description": "Invalid image."},
         401: {"model": ErrorResponse, "description": "Unauthorized."},
+        422: {
+            "model": ErrorResponse,
+            "description": "The model could not confidently identify a supported food.",
+        },
         503: {"model": ErrorResponse, "description": "ML model unavailable."},
     },
 )
@@ -163,12 +167,19 @@ async def predict_food_from_image(
         )
 
     extension = validate_upload_image(file, settings.max_upload_size_mb * 1024 * 1024)
-    image_url = await storage_service.save_upload(file, extension)
-    local_path = storage_service.get_local_path(image_url)
+    image_bytes = await file.read()
+    await file.seek(0)
+    image = open_image_from_bytes(
+        image_bytes,
+        "Uploaded file could not be decoded as an image.",
+    )
+
     try:
-        prediction = ml_service.predict(open_image(local_path))
+        prediction = ml_service.predict(image)
     except LowConfidencePredictionError as exc:
-        raise raise_low_confidence_http(exc)
+        raise build_low_confidence_http_error(exc)
+
+    image_url = await storage_service.save_upload(file, extension)
     return await persist_prediction_result(
         current_user=current_user,
         image_url=image_url,
@@ -185,6 +196,10 @@ async def predict_food_from_image(
     responses={
         400: {"model": ErrorResponse, "description": "Invalid image URL."},
         401: {"model": ErrorResponse, "description": "Unauthorized."},
+        422: {
+            "model": ErrorResponse,
+            "description": "The model could not confidently identify a supported food.",
+        },
         503: {"model": ErrorResponse, "description": "ML model unavailable."},
     },
 )
@@ -201,7 +216,7 @@ async def predict_food_from_image_url(
     try:
         prediction = ml_service.predict(await open_image_from_url(payload.image_url))
     except LowConfidencePredictionError as exc:
-        raise raise_low_confidence_http(exc)
+        raise build_low_confidence_http_error(exc)
     return await persist_prediction_result(
         current_user=current_user,
         image_url=payload.image_url,

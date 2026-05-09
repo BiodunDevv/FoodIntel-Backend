@@ -18,7 +18,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--input",
-        default="backend/app/data/food_nutrition_seed.json",
+        default="app/data/food_nutrition_seed.json",
         help="Path to the JSON seed file.",
     )
     parser.add_argument("--upsert-only", action="store_true")

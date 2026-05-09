@@ -56,17 +56,17 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--seed-input",
-        default="backend/app/data/food_nutrition_seed.json",
+        default="app/data/food_nutrition_seed.json",
         help="Existing FoodIntel seed file used as the base.",
     )
     parser.add_argument(
         "--aliases",
-        default="backend/app/data/food_slug_aliases.json",
+        default="app/data/food_slug_aliases.json",
         help="Slug-to-alias mapping JSON file.",
     )
     parser.add_argument(
         "--output",
-        default="backend/app/data/food_nutrition_seed.generated.json",
+        default="app/data/food_nutrition_seed.generated.json",
         help="Where to write the converted JSON.",
     )
     parser.add_argument(

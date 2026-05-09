@@ -1,5 +1,5 @@
-from backend.app.utils.jwt import create_access_token, decode_access_token
-from backend.app.utils.password import hash_password, verify_password
+from app.utils.jwt import create_access_token, decode_access_token
+from app.utils.password import hash_password, verify_password
 
 
 def test_password_hashing_roundtrip() -> None:

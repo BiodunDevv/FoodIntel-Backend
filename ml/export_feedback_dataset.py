@@ -16,7 +16,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mongodb-uri", default=os.getenv("MONGODB_URI", ""))
     parser.add_argument("--db-name", default=os.getenv("MONGODB_DB_NAME", "foodintel_db"))
     parser.add_argument("--output-dir", default="ml/dataset_feedback")
-    parser.add_argument("--uploads-dir", default="backend/uploads")
+    parser.add_argument("--uploads-dir", default="uploads")
     parser.add_argument("--status", default="approved")
     parser.add_argument("--clear-output", action="store_true")
     return parser.parse_args()

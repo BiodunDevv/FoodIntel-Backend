@@ -59,7 +59,7 @@ The backend is designed to **fail gracefully**: if the ML model is not loaded, p
 ## Project Structure
 
 ```
-backend/
+foodintel-backend/
 ├── app/
 │   ├── main.py                     # FastAPI app, middleware, exception handlers
 │   ├── config/
@@ -135,7 +135,7 @@ backend/
 
 ## Environment Variables
 
-Create `backend/.env` from `.env.example`:
+Create `foodintel-backend/.env` from `.env.example`:
 
 ```env
 # Application
@@ -190,7 +190,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 ### Install and run
 
 ```bash
-cd backend
+cd foodintel-backend
 python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -340,7 +340,7 @@ The final classification layer is replaced with a `Linear(in_features, num_class
 ### Training
 
 ```bash
-cd backend
+cd foodintel-backend
 python ml/train.py \
   --data-dir ./ml/data/merged_dataset \
   --model-name mobilenet_v3_large \
@@ -657,12 +657,44 @@ All documents stored in MongoDB. Below are the key collections:
 
 ## Deployment
 
-### Render (recommended for backend)
+### AWS ECS/Fargate (recommended for production)
+
+The production deployment path for FoodIntel is a Docker image on ECS Fargate behind an Application Load Balancer.
+
+Deployment assets are included under:
+
+```text
+deploy/aws/
+├── README.md                         # End-to-end ECS/Fargate guide
+└── ecs-task-definition.template.json # Task definition template
+
+scripts/build_push_ecr.sh             # Build and push Docker image to ECR
+Dockerfile                            # Production API container
+.dockerignore                         # Keeps datasets, venvs, reports, and secrets out of the image
+requirements-api.txt                  # Lean runtime dependencies for deployment
+```
+
+Quick path:
+
+```bash
+cd foodintel-backend
+docker build -t foodintel-api .
+
+export AWS_REGION=us-east-1
+export AWS_ACCOUNT_ID=123456789012
+export IMAGE_TAG=$(git rev-parse --short HEAD)
+
+./scripts/build_push_ecr.sh
+```
+
+Then follow [deploy/aws/README.md](deploy/aws/README.md) to create the ECR repository, Parameter Store secrets, ECS task definition, Fargate service, ALB, HTTPS listener, and health checks.
+
+### Render (optional simple backend hosting)
 
 A `render.yaml` is included at the root of the backend folder.
 
 ```bash
-# Push backend/ to a separate Git repo, then connect to Render
+# Push foodintel-backend/ to a separate Git repo, then connect to Render
 # Set all environment variables in the Render dashboard
 ```
 
@@ -674,22 +706,25 @@ Key Render settings:
 
 ### Environment checklist
 
-- [ ] `SECRET_KEY` is a random 32+ character string
-- [ ] `MONGODB_URL` points to Atlas (or a managed MongoDB instance)
+- [ ] `JWT_SECRET_KEY` is a random 32+ character string
+- [ ] `MONGODB_URI` points to Atlas (or a managed MongoDB instance)
 - [ ] `CORS_ORIGINS` includes the deployed frontend domain
-- [ ] `MODEL_PATH` points to the uploaded model checkpoint (use a persistent disk or object storage)
+- [ ] `MODEL_PATH=ml/models/food_model_extensive.pt`
+- [ ] `CLASS_NAMES_PATH=ml/classes.json`
 - [ ] `ENVIRONMENT=production`
+- [ ] `RETRAIN_ON_FEEDBACK=false` for container deployments
+- [ ] Cloudinary credentials are configured for persistent production uploads
 
 ### Model checkpoint in production
 
-The model file (`food_model_extensive.pt`, ~10–50 MB) must be available at `MODEL_PATH` at startup. On Render, use a persistent disk mounted at `/data` and set `MODEL_PATH=/data/food_model_extensive.pt`. On Railway or Fly.io, use a volume mount.
+The model file (`food_model_extensive.pt`) must be available at `MODEL_PATH` at startup. For ECS, the production Dockerfile copies `ml/models/food_model_extensive.pt` and `ml/classes.json` into the image so deployments are self-contained and fast.
 
 If the model file is missing, the backend starts successfully and all other endpoints work — prediction routes return a clean `503 Service Unavailable` until the checkpoint is available.
 
 ### Docker
 
 ```bash
-cd backend
+cd foodintel-backend
 docker build -t foodintel-api .
 docker run -p 8000:8000 --env-file .env foodintel-api
 ```

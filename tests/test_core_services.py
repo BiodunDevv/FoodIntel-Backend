@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta, timezone
 
-from backend.app.schemas.food_schema import NutritionValues
-from backend.app.services.health_score_service import calculate_health_score
-from backend.app.services.nutrition_service import calculate_serving_nutrition
-from backend.app.services.recommendation_service import generate_recommendations
-from backend.app.services.report_service import build_weekly_report
+from app.schemas.food_schema import NutritionValues
+from app.services.health_score_service import calculate_health_score
+from app.services.nutrition_service import calculate_serving_nutrition
+from app.services.recommendation_service import generate_recommendations
+from app.services.report_service import build_weekly_report
 
 
 def test_calculate_serving_nutrition() -> None:

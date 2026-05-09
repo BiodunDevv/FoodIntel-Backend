@@ -4,7 +4,7 @@
 
 1. Create `.env` from `.env.example` and add `MONGODB_URI`.
 2. Install backend dependencies.
-3. Run `uvicorn backend.app.main:app --reload`.
+3. Run `uvicorn app.main:app --reload`.
 4. Open `http://localhost:8000` and verify the project page loads.
 5. Open `http://localhost:8000/health` and confirm the backend responds.
 6. Open `http://localhost:8000/docs`.

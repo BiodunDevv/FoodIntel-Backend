@@ -4,11 +4,11 @@ FoodIntel can convert CSV or Excel nutrition tables into the backend seed format
 
 ## Script
 
-- [backend/app/scripts/convert_food_nutrition_table.py](/Users/mac/Desktop/FoodIntel%20FullStack/backend/app/scripts/convert_food_nutrition_table.py)
+- `app/scripts/convert_food_nutrition_table.py`
 
 ## Alias Mapping
 
-- [backend/app/data/food_slug_aliases.json](/Users/mac/Desktop/FoodIntel%20FullStack/backend/app/data/food_slug_aliases.json)
+- `app/data/food_slug_aliases.json`
 
 The alias file maps common food-table names to FoodIntel slugs such as:
 
@@ -21,24 +21,25 @@ The alias file maps common food-table names to FoodIntel slugs such as:
 For Excel:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.scripts.convert_food_nutrition_table \
+cd foodintel-backend
+.venv/bin/python -m app.scripts.convert_food_nutrition_table \
   --input /path/to/WAFCT_2019.xlsx \
   --sheet 0 \
-  --output backend/app/data/food_nutrition_seed.generated.json
+  --output app/data/food_nutrition_seed.generated.json
 ```
 
 For CSV:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.scripts.convert_food_nutrition_table \
+.venv/bin/python -m app.scripts.convert_food_nutrition_table \
   --input /path/to/foods.csv \
-  --output backend/app/data/food_nutrition_seed.generated.json
+  --output app/data/food_nutrition_seed.generated.json
 ```
 
-From inside `backend/`:
+From inside `foodintel-backend/`:
 
 ```bash
-PYTHONPATH=. ../.venv/bin/python -m app.scripts.convert_food_nutrition_table \
+.venv/bin/python -m app.scripts.convert_food_nutrition_table \
   --input /path/to/foods.csv \
   --seed-input app/data/food_nutrition_seed.json \
   --aliases app/data/food_slug_aliases.json \
@@ -48,14 +49,14 @@ PYTHONPATH=. ../.venv/bin/python -m app.scripts.convert_food_nutrition_table \
 Then import the generated file:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.scripts.import_food_nutrition \
-  --input backend/app/data/food_nutrition_seed.generated.json
+.venv/bin/python -m app.scripts.import_food_nutrition \
+  --input app/data/food_nutrition_seed.generated.json
 ```
 
-From inside `backend/`:
+From inside `foodintel-backend/`:
 
 ```bash
-PYTHONPATH=. ../.venv/bin/python -m app.scripts.import_food_nutrition \
+.venv/bin/python -m app.scripts.import_food_nutrition \
   --input app/data/food_nutrition_seed.generated.json
 ```
 

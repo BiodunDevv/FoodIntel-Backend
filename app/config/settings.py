@@ -10,7 +10,10 @@ SETTINGS_FILE = Path(__file__).resolve()
 STANDALONE_BACKEND_ROOT = SETTINGS_FILE.parents[2]
 MONOREPO_ROOT_CANDIDATE = SETTINGS_FILE.parents[3]
 
-if (MONOREPO_ROOT_CANDIDATE / "backend" / "app").exists():
+if (MONOREPO_ROOT_CANDIDATE / "foodintel-backend" / "app").exists():
+    ROOT_DIR = MONOREPO_ROOT_CANDIDATE
+    BACKEND_DIR = ROOT_DIR / "foodintel-backend"
+elif (MONOREPO_ROOT_CANDIDATE / "backend" / "app").exists():
     ROOT_DIR = MONOREPO_ROOT_CANDIDATE
     BACKEND_DIR = ROOT_DIR / "backend"
 elif (STANDALONE_BACKEND_ROOT / "app").exists():
@@ -35,7 +38,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(..., alias="JWT_SECRET_KEY")
     jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
     access_token_expire_minutes: int = Field(1440, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
-    upload_dir: str = Field("backend/uploads", alias="UPLOAD_DIR")
+    upload_dir: str = Field("uploads", alias="UPLOAD_DIR")
     model_path: str = Field("ml/models/food_model_extensive.pt", alias="MODEL_PATH")
     class_names_path: str = Field("ml/classes.json", alias="CLASS_NAMES_PATH")
     environment: Literal["development", "test", "production"] = Field(

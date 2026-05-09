@@ -23,19 +23,20 @@ This is the correct end-to-end architecture because nutrient values are database
 
 FoodIntel now keeps its nutrition seed in:
 
-- [backend/app/data/food_nutrition_seed.json](/Users/mac/Desktop/FoodIntel%20FullStack/backend/app/data/food_nutrition_seed.json)
+- `app/data/food_nutrition_seed.json`
 
 You can import or refresh it with:
 
 ```bash
-PYTHONPATH=backend .venv/bin/python -m app.scripts.import_food_nutrition \
-  --input backend/app/data/food_nutrition_seed.json
+cd foodintel-backend
+.venv/bin/python -m app.scripts.import_food_nutrition \
+  --input app/data/food_nutrition_seed.json
 ```
 
-Or from inside `backend/`:
+Or from inside `foodintel-backend/`:
 
 ```bash
-PYTHONPATH=. ../.venv/bin/python -m app.scripts.import_food_nutrition \
+.venv/bin/python -m app.scripts.import_food_nutrition \
   --input app/data/food_nutrition_seed.json
 ```
 

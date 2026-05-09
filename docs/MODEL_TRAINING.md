@@ -107,7 +107,7 @@ python ml/export_feedback_dataset.py \
   --mongodb-uri "$MONGODB_URI" \
   --db-name foodintel_db \
   --output-dir ml/dataset_feedback \
-  --uploads-dir backend/uploads \
+  --uploads-dir uploads \
   --status approved \
   --clear-output
 ```
