@@ -1,5 +1,6 @@
 .env
 .env.local
+.venv/
 kaggle.json
 .pytest_cache/
 .mypy_cache/

@@ -15,6 +15,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val-split", type=float, default=0.15)
     parser.add_argument("--test-split", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--clear-output", action="store_true", help="Delete output-dir before writing splits.")
+    parser.add_argument("--min-images", type=int, default=2, help="Skip classes with fewer supported images.")
     return parser.parse_args()
 
 
@@ -29,7 +31,8 @@ def main() -> None:
 
     for class_dir in classes:
         images = [path for path in class_dir.iterdir() if path.is_file()]
-        counts[class_dir.name] = len(images)
+        supported_images = [path for path in images if path.suffix.lower() in SUPPORTED_EXTENSIONS]
+        counts[class_dir.name] = len(supported_images)
         for image in images:
             if image.suffix.lower() not in SUPPORTED_EXTENSIONS:
                 unsupported[class_dir.name].append(image.name)
@@ -45,13 +48,26 @@ def main() -> None:
         return
 
     output_dir = Path(args.output_dir)
+    if args.clear_output and output_dir.exists():
+        shutil.rmtree(output_dir)
+
     for class_dir in classes:
         images = [path for path in class_dir.iterdir() if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS]
+        if len(images) < args.min_images:
+            print(f"Skipping {class_dir.name}: only {len(images)} supported image(s).")
+            continue
         random.shuffle(images)
         total = len(images)
-        test_count = max(1, int(total * args.test_split))
-        val_count = max(1, int(total * args.val_split))
-        train_count = max(1, total - val_count - test_count)
+        test_count = int(total * args.test_split)
+        val_count = int(total * args.val_split)
+        if total >= 3:
+            test_count = max(1, test_count)
+            val_count = max(1, val_count)
+        train_count = total - val_count - test_count
+        if train_count <= 0:
+            train_count = max(1, total - 1)
+            val_count = max(0, total - train_count)
+            test_count = 0
         splits = {
             "train": images[:train_count],
             "val": images[train_count : train_count + val_count],

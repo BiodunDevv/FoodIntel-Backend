@@ -7,16 +7,19 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import torch
+from PIL import Image, ImageFile
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from torch import nn
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, Subset, random_split
 from torchvision import datasets, transforms
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parents[1]))
-    from ml.common import build_model, freeze_backbone, save_classes, trainable_parameters, unfreeze_backbone
+    from ml.common import build_model, freeze_backbone, resolve_device, save_classes, trainable_parameters, unfreeze_backbone
 else:
-    from ml.common import build_model, freeze_backbone, save_classes, trainable_parameters, unfreeze_backbone
+    from ml.common import build_model, freeze_backbone, resolve_device, save_classes, trainable_parameters, unfreeze_backbone
 
 
 class Food101Subset(Dataset):
@@ -48,12 +51,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", default="ml/models/food_model.pt")
     parser.add_argument("--classes-output", default="ml/classes.json")
     parser.add_argument("--reports-dir", default="ml/reports")
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     parser.add_argument("--num-workers", type=int, default=-1)
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--freeze-backbone", action="store_true")
     parser.add_argument("--freeze-epochs", type=int, default=3)
     parser.add_argument("--early-stop-patience", type=int, default=4)
+    parser.add_argument(
+        "--max-samples-per-class",
+        type=int,
+        default=0,
+        help="Optional cap per class for quick local smoke tests.",
+    )
     parser.add_argument(
         "--resume-from",
         default="",
@@ -65,14 +74,6 @@ def parse_args() -> argparse.Namespace:
         help="Disable pretrained weights and use random initialization.",
     )
     return parser.parse_args()
-
-
-def resolve_device(choice: str) -> torch.device:
-    if choice == "cpu":
-        return torch.device("cpu")
-    if choice == "cuda":
-        return torch.device("cuda")
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def resolve_num_workers(requested: int) -> int:
@@ -141,12 +142,60 @@ def create_food101_loaders(args: argparse.Namespace, train_transform, eval_trans
     return train_dataset, val_dataset, test_dataset, class_names
 
 
+def limit_imagefolder_samples(dataset: datasets.ImageFolder, max_samples_per_class: int) -> Subset | datasets.ImageFolder:
+    if max_samples_per_class <= 0:
+        return dataset
+
+    counts: dict[int, int] = {}
+    selected_indices: list[int] = []
+    for index, (_, class_index) in enumerate(dataset.samples):
+        count = counts.get(class_index, 0)
+        if count >= max_samples_per_class:
+            continue
+        counts[class_index] = count + 1
+        selected_indices.append(index)
+    return Subset(dataset, selected_indices)
+
+
+def is_valid_image(path: str) -> bool:
+    try:
+        with Image.open(path) as image:
+            image.verify()
+        with Image.open(path) as image:
+            image.convert("RGB")
+        return True
+    except Exception as exc:
+        print(f"Skipping unreadable image: {path} ({exc})")
+        return False
+
+
+def filter_unreadable_images(dataset: datasets.ImageFolder) -> datasets.ImageFolder:
+    valid_samples = [(path, target) for path, target in dataset.samples if is_valid_image(path)]
+    skipped = len(dataset.samples) - len(valid_samples)
+    if skipped:
+        print(f"Skipped {skipped} unreadable image(s) from {dataset.root}.")
+    dataset.samples = valid_samples
+    dataset.imgs = valid_samples
+    dataset.targets = [target for _, target in valid_samples]
+    return dataset
+
+
 def create_imagefolder_loaders(args: argparse.Namespace, train_transform, eval_transform):
     data_dir = Path(args.data_dir)
-    train_dataset = datasets.ImageFolder(data_dir / "train", transform=train_transform)
-    val_dataset = datasets.ImageFolder(data_dir / "val", transform=eval_transform)
-    test_dataset = datasets.ImageFolder(data_dir / "test", transform=eval_transform)
-    return train_dataset, val_dataset, test_dataset, list(train_dataset.classes)
+    train_dataset = filter_unreadable_images(
+        datasets.ImageFolder(data_dir / "train", transform=train_transform)
+    )
+    val_dataset = filter_unreadable_images(
+        datasets.ImageFolder(data_dir / "val", transform=eval_transform)
+    )
+    test_dataset = filter_unreadable_images(
+        datasets.ImageFolder(data_dir / "test", transform=eval_transform)
+    )
+    class_names = list(train_dataset.classes)
+    train_dataset = limit_imagefolder_samples(train_dataset, args.max_samples_per_class)
+    val_dataset = limit_imagefolder_samples(val_dataset, args.max_samples_per_class)
+    test_dataset = limit_imagefolder_samples(test_dataset, args.max_samples_per_class)
+    return train_dataset, val_dataset, test_dataset, class_names
 
 
 def evaluate_model(model, loader, device):

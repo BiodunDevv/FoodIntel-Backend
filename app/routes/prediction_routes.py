@@ -18,7 +18,7 @@ from app.schemas.prediction_schema import (
 from app.schemas.user_schema import UserPublic
 from app.services.auth_service import get_current_user
 from app.services.health_score_service import calculate_health_score
-from app.services.ml_service import ml_service
+from app.services.ml_service import LowConfidencePredictionError, ml_service
 from app.services.nutrition_service import calculate_serving_nutrition
 from app.services.recommendation_service import generate_recommendations
 from app.services.retraining_service import retraining_service
@@ -28,6 +28,58 @@ from app.utils.object_id import serialize_mongo_document
 
 
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
+
+
+def raise_low_confidence_http(exc: LowConfidencePredictionError) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        detail={
+            "code": "unsupported_or_uncertain_image",
+            "message": (
+                "I am not confident this image is one of the supported food classes. "
+                "Please upload a clear Nigerian food photo."
+            ),
+            "top_prediction": exc.label,
+            "confidence": exc.confidence,
+            "runner_up": exc.runner_up_label,
+            "runner_up_confidence": exc.runner_up_confidence,
+            "margin": exc.margin,
+            "confidence_threshold": exc.confidence_threshold,
+            "margin_threshold": exc.margin_threshold,
+        },
+    )
+
+
+def format_food_label(slug: str) -> str:
+    return slug.replace("_", " ").title()
+
+
+@router.get(
+    "/supported-foods",
+    summary="List model-supported food classes",
+    description="Return the food classes currently available in the loaded prediction model.",
+)
+async def supported_foods() -> dict:
+    status_payload = ml_service.status()
+    return {
+        "success": True,
+        "message": "Supported foods retrieved successfully.",
+        "data": {
+            "model_loaded": status_payload["model_loaded"],
+            "model_version": status_payload["model_version"],
+            "class_count": status_payload["class_count"],
+            "confidence_threshold": status_payload["confidence_threshold"],
+            "margin_threshold": status_payload["margin_threshold"],
+            "foods": [
+                {"slug": slug, "label": format_food_label(slug)}
+                for slug in status_payload["classes"]
+            ],
+            "note": (
+                "These are the foods available in the current model. "
+                "FoodIntel rejects uncertain images and the class list will expand as more reviewed data is added."
+            ),
+        },
+    }
 
 
 async def persist_prediction_result(
@@ -113,7 +165,10 @@ async def predict_food_from_image(
     extension = validate_upload_image(file, settings.max_upload_size_mb * 1024 * 1024)
     image_url = await storage_service.save_upload(file, extension)
     local_path = storage_service.get_local_path(image_url)
-    prediction = ml_service.predict(open_image(local_path))
+    try:
+        prediction = ml_service.predict(open_image(local_path))
+    except LowConfidencePredictionError as exc:
+        raise raise_low_confidence_http(exc)
     return await persist_prediction_result(
         current_user=current_user,
         image_url=image_url,
@@ -143,7 +198,10 @@ async def predict_food_from_image_url(
             detail="The model is not trained or loaded yet. Train a model and restart the backend.",
         )
 
-    prediction = ml_service.predict(await open_image_from_url(payload.image_url))
+    try:
+        prediction = ml_service.predict(await open_image_from_url(payload.image_url))
+    except LowConfidencePredictionError as exc:
+        raise raise_low_confidence_http(exc)
     return await persist_prediction_result(
         current_user=current_user,
         image_url=payload.image_url,

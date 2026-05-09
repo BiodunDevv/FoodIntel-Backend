@@ -17,6 +17,7 @@ import json
 import os
 import re
 import shutil
+import zipfile
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,7 +25,9 @@ from typing import Iterable
 
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+SUPPORTED_ARCHIVES = {".zip"}
 LOW_DATA_THRESHOLD = 100
+SKIP_CLASSES = {"skip", "ignore", "unknown", "bread"}
 
 
 CANONICAL_NAMES: dict[str, str] = {
@@ -215,6 +218,35 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Delete the unified output directory before copying images.",
     )
+    parser.add_argument(
+        "--archive",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help="Archive to copy into --archive-dir and extract before scanning. May be repeated.",
+    )
+    parser.add_argument(
+        "--archive-search-root",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help="Folder to search recursively for local archives. May be repeated.",
+    )
+    parser.add_argument(
+        "--archive-dir",
+        default=os.getenv("FOODINTEL_ARCHIVE_DIR", "ml/raw_sources/archives"),
+        help="Folder where local archive files are centralized.",
+    )
+    parser.add_argument(
+        "--extract-dir",
+        default=os.getenv("FOODINTEL_EXTRACT_DIR", f"{default_raw_root}/extracted"),
+        help="Folder where archives are extracted before merging.",
+    )
+    parser.add_argument(
+        "--clear-extracted",
+        action="store_true",
+        help="Delete --extract-dir before extracting archives.",
+    )
     return parser.parse_args()
 
 
@@ -282,6 +314,104 @@ def default_sources(raw_root: Path) -> list[Source]:
     ]
 
 
+def archive_suffix(path: Path) -> str:
+    """Return a normalized archive suffix."""
+
+    name = path.name.lower()
+    if name.endswith(".zip"):
+        return ".zip"
+    return path.suffix.lower()
+
+
+def is_supported_archive(path: Path) -> bool:
+    """Return whether a path is a supported archive."""
+
+    return path.is_file() and archive_suffix(path) in SUPPORTED_ARCHIVES
+
+
+def safe_archive_name(path: Path) -> str:
+    """Return a stable archive filename safe for the centralized archive folder."""
+
+    stem = normalize_name(path.stem) or "archive"
+    suffix = archive_suffix(path)
+    digest = hashlib.sha256(str(path.resolve()).encode("utf-8")).hexdigest()[:8]
+    return f"{stem}_{digest}{suffix}"
+
+
+def find_archives(search_roots: Iterable[Path]) -> list[Path]:
+    """Find local supported archives under the provided roots."""
+
+    archives: list[Path] = []
+    ignored_parts = {".git", ".venv", "__pycache__", "node_modules"}
+    for root in search_roots:
+        if not root.exists():
+            continue
+        if root.is_file() and is_supported_archive(root):
+            archives.append(root)
+            continue
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if any(part in ignored_parts for part in path.parts):
+                continue
+            if is_supported_archive(path):
+                archives.append(path)
+    unique: dict[Path, Path] = {path.resolve(): path for path in archives}
+    return sorted(unique.values())
+
+
+def centralize_archives(archives: Iterable[Path], archive_dir: Path) -> list[Path]:
+    """Copy archives into one source archive folder without deleting originals."""
+
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    staged: list[Path] = []
+    for archive in archives:
+        if not archive.exists():
+            continue
+        destination = archive_dir / archive.name
+        if destination.exists() and destination.resolve() != archive.resolve():
+            destination = archive_dir / safe_archive_name(archive)
+        if destination.resolve() != archive.resolve():
+            shutil.copy2(archive, destination)
+        staged.append(destination)
+    return sorted({path.resolve(): path for path in staged}.values())
+
+
+def extract_archive(archive: Path, extract_dir: Path) -> Source | None:
+    """Extract a supported archive and return its scan source."""
+
+    target = extract_dir / normalize_name(archive.stem)
+    if target.exists() and any(target.iterdir()):
+        return Source(normalize_name(archive.stem), target)
+
+    target.mkdir(parents=True, exist_ok=True)
+    if archive_suffix(archive) == ".zip":
+        try:
+            with zipfile.ZipFile(archive) as handle:
+                handle.extractall(target)
+        except zipfile.BadZipFile:
+            print(f"Skipping invalid ZIP archive: {archive}")
+            return None
+        return Source(normalize_name(archive.stem), target)
+
+    return None
+
+
+def extract_archives(archives: Iterable[Path], extract_dir: Path, clear_extracted: bool) -> list[Source]:
+    """Extract all archives and return scan sources."""
+
+    if clear_extracted and extract_dir.exists():
+        shutil.rmtree(extract_dir)
+    extract_dir.mkdir(parents=True, exist_ok=True)
+
+    sources: list[Source] = []
+    for archive in archives:
+        source = extract_archive(archive, extract_dir)
+        if source is not None:
+            sources.append(source)
+    return sources
+
+
 def iter_image_paths(source: Source, output_dir: Path) -> Iterable[Path]:
     """Yield supported image paths from a source, excluding the output folder."""
 
@@ -306,6 +436,8 @@ def infer_class_name(image_path: Path, source_root: Path) -> str:
     parent = image_path.parent
     if parent == source_root:
         return image_path.stem
+    if parent.name.lower() in {"train", "valid", "val", "test"}:
+        return "skip"
     return parent.name
 
 
@@ -337,12 +469,15 @@ def discover_images(
                 continue
             seen_paths.add(resolved_path)
             raw_class_name = infer_class_name(image_path, source.path)
+            canonical_class_name = canonicalize_class_name(raw_class_name, aliases)
+            if canonical_class_name.lower() in SKIP_CLASSES:
+                continue
             records.append(
                 ImageRecord(
                     source_dataset=source.name,
                     original_path=image_path,
                     raw_class_name=raw_class_name,
-                    canonical_class_name=canonicalize_class_name(raw_class_name, aliases),
+                    canonical_class_name=canonical_class_name,
                     sha256_hash=sha256_file(image_path),
                 )
             )
@@ -362,7 +497,12 @@ def copy_records(records: list[ImageRecord], output_dir: Path) -> list[dict[str,
     """Copy discovered images into the unified directory and build manifest rows."""
 
     manifest: list[dict[str, str]] = []
+    seen_hashes: set[tuple[str, str]] = set()
     for record in records:
+        dedupe_key = (record.canonical_class_name, record.sha256_hash)
+        if dedupe_key in seen_hashes:
+            continue
+        seen_hashes.add(dedupe_key)
         class_dir = output_dir / record.canonical_class_name
         class_dir.mkdir(parents=True, exist_ok=True)
         destination = class_dir / safe_destination_name(record)
@@ -375,6 +515,7 @@ def copy_records(records: list[ImageRecord], output_dir: Path) -> list[dict[str,
                 "class": record.canonical_class_name,
                 "source_dataset": record.source_dataset,
                 "original_path": str(record.original_path),
+                "raw_class_name": record.raw_class_name,
                 "sha256_hash": record.sha256_hash,
             }
         )
@@ -424,9 +565,17 @@ def main() -> None:
     raw_root = Path(args.raw_root)
     output_dir = Path(args.output_dir)
     manifest_path = Path(args.manifest_path)
+    archive_dir = Path(args.archive_dir)
+    extract_dir = Path(args.extract_dir)
     aliases = load_aliases(Path(args.class_map))
 
+    archive_candidates = [Path(archive) for archive in args.archive]
+    archive_candidates.extend(find_archives(Path(root) for root in args.archive_search_root))
+    staged_archives = centralize_archives(archive_candidates, archive_dir)
+    extracted_sources = extract_archives(staged_archives, extract_dir, args.clear_extracted)
+
     sources = [] if args.no_default_sources else default_sources(raw_root)
+    sources.extend(extracted_sources)
     sources.extend(parse_source(source) for source in args.source)
 
     if args.clear_output and output_dir.exists():

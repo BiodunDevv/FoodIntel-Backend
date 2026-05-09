@@ -25,7 +25,23 @@ class RetrainingDecision:
     message: str
 
 
+@dataclass
+class RunRecord:
+    run_id: int
+    triggered_by: str
+    started_at: str
+    finished_at: str | None
+    status: str
+    message: str
+    exit_code: int | None
+    samples_used: int
+    log_lines: list[str]
+
+
 class RetrainingService:
+    _MAX_HISTORY = 10
+    _MAX_LOG_LINES = 200
+
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._thread: threading.Thread | None = None
@@ -34,6 +50,9 @@ class RetrainingService:
         self._last_started_at: str | None = None
         self._last_finished_at: str | None = None
         self._last_exit_code: int | None = None
+        self._run_counter = 0
+        self._history: list[RunRecord] = []
+        self._current_run: RunRecord | None = None
 
     def status(self) -> dict[str, str | int | None | bool]:
         with self._lock:
@@ -45,6 +64,53 @@ class RetrainingService:
                 "last_finished_at": self._last_finished_at,
                 "last_exit_code": self._last_exit_code,
             }
+
+    def history(self) -> list[dict]:
+        with self._lock:
+            runs = []
+            # current run first (if active), then completed history newest-first
+            if self._current_run is not None:
+                runs.append(self._current_run)
+            runs.extend(reversed(self._history))
+            return [
+                {
+                    "run_id": r.run_id,
+                    "triggered_by": r.triggered_by,
+                    "started_at": r.started_at,
+                    "finished_at": r.finished_at,
+                    "status": r.status,
+                    "message": r.message,
+                    "exit_code": r.exit_code,
+                    "samples_used": r.samples_used,
+                    "log_lines": list(r.log_lines),
+                }
+                for r in runs
+            ]
+
+    def _new_run(self, triggered_by: str, samples: int) -> RunRecord:
+        self._run_counter += 1
+        return RunRecord(
+            run_id=self._run_counter,
+            triggered_by=triggered_by,
+            started_at=datetime.now(timezone.utc).isoformat(),
+            finished_at=None,
+            status="queued",
+            message="Queued.",
+            exit_code=None,
+            samples_used=samples,
+            log_lines=[],
+        )
+
+    def _finish_run(self, run: RunRecord, status: str, message: str, exit_code: int | None) -> None:
+        run.finished_at = datetime.now(timezone.utc).isoformat()
+        run.status = status
+        run.message = message
+        run.exit_code = exit_code
+        with self._lock:
+            self._history.append(run)
+            if len(self._history) > self._MAX_HISTORY:
+                self._history = self._history[-self._MAX_HISTORY:]
+            self._current_run = None
 
     def request_retraining(self, approved_count: int) -> RetrainingDecision:
         settings = get_settings()
@@ -73,9 +139,17 @@ class RetrainingService:
             self._set_state("waiting", message)
             return RetrainingDecision(triggered=False, status="waiting", message=message)
 
-        thread = threading.Thread(target=self._run_pipeline, name="foodintel-retraining", daemon=True)
+        triggered_by = "manual" if approved_count >= settings.retrain_min_feedback_samples else "scheduled"
+        run = self._new_run(triggered_by=triggered_by, samples=approved_count)
+        thread = threading.Thread(
+            target=self._run_pipeline,
+            args=(run,),
+            name="foodintel-retraining",
+            daemon=True,
+        )
         with self._lock:
             self._thread = thread
+            self._current_run = run
             self._status = "queued"
             self._message = f"Retraining queued with {approved_count} approved feedback samples."
             self._last_started_at = datetime.now(timezone.utc).isoformat()
@@ -263,20 +337,30 @@ class RetrainingService:
             command.append("--no-pretrained")
         return command
 
-    def _run_pipeline(self) -> None:
+    def _log(self, run: RunRecord, line: str) -> None:
+        print(f"[Retraining] {line}")
+        with self._lock:
+            run.log_lines.append(line)
+            if len(run.log_lines) > self._MAX_LOG_LINES:
+                run.log_lines = run.log_lines[-self._MAX_LOG_LINES:]
+            run.status = "running"
+
+    def _run_pipeline(self, run: RunRecord) -> None:
         self._set_state("running", "Preparing feedback samples for retraining.")
+        run.status = "running"
         try:
+            self._log(run, "Preparing feedback samples…")
             exported = self._prepare_working_dataset()
             if exported == 0:
-                self._set_state(
-                    "waiting",
-                    "No usable feedback images were available for retraining yet.",
-                )
+                msg = "No usable feedback images were available for retraining yet."
+                self._set_state("waiting", msg)
+                self._finish_run(run, "waiting", msg, exit_code=None)
                 return
 
-            print(f"[Retraining] Exported {exported} feedback images into the working dataset.")
+            self._log(run, f"Exported {exported} feedback images into the working dataset.")
+            run.samples_used = exported
             command = self._build_training_command()
-            print(f"[Retraining] Starting background fine-tuning: {' '.join(command)}")
+            self._log(run, f"Launching training: {' '.join(command)}")
 
             process = subprocess.Popen(
                 command,
@@ -289,24 +373,25 @@ class RetrainingService:
 
             assert process.stdout is not None
             for line in process.stdout:
-                print(f"[Retraining] {line.rstrip()}")
+                self._log(run, line.rstrip())
 
             exit_code = process.wait()
             if exit_code != 0:
-                self._set_state("failed", "Background retraining failed.", exit_code=exit_code)
-                print(f"[Retraining] Training process exited with code {exit_code}")
+                msg = f"Training process exited with code {exit_code}."
+                self._set_state("failed", msg, exit_code=exit_code)
+                self._finish_run(run, "failed", msg, exit_code)
                 return
 
             ml_service.load()
-            self._set_state(
-                "completed",
-                "Background fine-tuning finished and the model was reloaded successfully.",
-                exit_code=0,
-            )
-            print("[Retraining] Model reloaded successfully.")
+            msg = "Fine-tuning finished — model reloaded successfully."
+            self._log(run, msg)
+            self._set_state("completed", msg, exit_code=0)
+            self._finish_run(run, "completed", msg, exit_code=0)
         except Exception as exc:
-            self._set_state("failed", f"Background retraining failed: {exc}", exit_code=1)
-            print(f"[Retraining] Background job failed: {exc}")
+            msg = f"Background retraining failed: {exc}"
+            self._set_state("failed", msg, exit_code=1)
+            self._finish_run(run, "failed", msg, exit_code=1)
+            print(f"[Retraining] {msg}")
 
 
 retraining_service = RetrainingService()

@@ -10,9 +10,9 @@ from torchvision import datasets, transforms
 
 if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parents[1]))
-    from ml.common import build_model, load_classes
+    from ml.common import build_model, load_classes, resolve_device
 else:
-    from ml.common import build_model, load_classes
+    from ml.common import build_model, load_classes, resolve_device
 
 
 def parse_args() -> argparse.Namespace:
@@ -22,13 +22,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--classes-path", required=True)
     parser.add_argument("--reports-dir", default="ml/reports")
     parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    device = torch.device("cuda" if args.device == "auto" and torch.cuda.is_available() else args.device if args.device != "auto" else "cpu")
+    device = resolve_device(args.device)
     classes = load_classes(Path(args.classes_path))
     checkpoint = torch.load(args.model_path, map_location=device)
     model = build_model(checkpoint.get("model_name", "mobilenet_v3_small"), len(classes), pretrained=False).to(device)

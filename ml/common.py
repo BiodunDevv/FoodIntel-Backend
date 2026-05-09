@@ -77,6 +77,20 @@ def trainable_parameters(model: torch.nn.Module) -> Iterable[torch.nn.Parameter]
     return (parameter for parameter in model.parameters() if parameter.requires_grad)
 
 
+def resolve_device(choice: str = "auto") -> torch.device:
+    if choice == "cpu":
+        return torch.device("cpu")
+    if choice == "cuda":
+        return torch.device("cuda")
+    if choice == "mps":
+        return torch.device("mps")
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
 def save_classes(path: Path, classes: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"classes": classes}, indent=2), encoding="utf-8")

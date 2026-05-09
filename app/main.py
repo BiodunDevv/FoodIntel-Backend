@@ -11,11 +11,13 @@ from app.database.mongodb import mongo_manager
 from app.routes.auth_routes import router as auth_router
 from app.routes.food_routes import router as food_router
 from app.routes.meal_routes import router as meal_router
+from app.routes.admin_routes import router as admin_router
 from app.routes.page_routes import router as page_router
 from app.routes.prediction_routes import router as prediction_router
 from app.routes.report_routes import router as report_router
 from app.routes.user_routes import router as user_router
 from app.services.ml_service import ml_service
+from app.services.scheduler_service import daily_scheduler
 
 
 settings = get_settings()
@@ -27,7 +29,9 @@ async def lifespan(_: FastAPI):
     settings.upload_path.mkdir(parents=True, exist_ok=True)
     await mongo_manager.connect(settings)
     ml_service.load()
+    daily_scheduler.start()
     yield
+    daily_scheduler.stop()
     await mongo_manager.disconnect()
 
 
@@ -79,6 +83,12 @@ def error_response(message: str, detail: str, status_code: int) -> JSONResponse:
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
+    if isinstance(exc.detail, dict):
+        message = str(exc.detail.get("message", "Request failed."))
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"success": False, "message": message, "detail": exc.detail},
+        )
     detail = exc.detail if isinstance(exc.detail, str) else "Request failed."
     message = detail if exc.status_code < 500 else "Server error."
     return error_response(message, detail, exc.status_code)
@@ -95,6 +105,7 @@ async def runtime_exception_handler(_: Request, exc: RuntimeError) -> JSONRespon
 
 
 app.include_router(page_router)
+app.include_router(admin_router)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(food_router, prefix="/api/v1")

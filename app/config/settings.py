@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     cloudinary_cloud_name: str | None = Field(default=None, alias="CLOUDINARY_CLOUD_NAME")
     cloudinary_api_key: str | None = Field(default=None, alias="CLOUDINARY_API_KEY")
     cloudinary_api_secret: str | None = Field(default=None, alias="CLOUDINARY_API_SECRET")
+    prediction_confidence_threshold: float = Field(0.55, alias="PREDICTION_CONFIDENCE_THRESHOLD")
+    prediction_margin_threshold: float = Field(0.12, alias="PREDICTION_MARGIN_THRESHOLD")
     retrain_on_feedback: bool = Field(True, alias="RETRAIN_ON_FEEDBACK")
     retrain_min_feedback_samples: int = Field(5, alias="RETRAIN_MIN_FEEDBACK_SAMPLES")
     retrain_base_dataset_dir: str = Field("ml/dataset_master", alias="RETRAIN_BASE_DATASET_DIR")
@@ -64,6 +66,7 @@ class Settings(BaseSettings):
     retrain_early_stop_patience: int = Field(1, alias="RETRAIN_EARLY_STOP_PATIENCE")
     retrain_no_pretrained: bool = Field(False, alias="RETRAIN_NO_PRETRAINED")
     retrain_device: Literal["cpu", "cuda", "auto"] = Field("cpu", alias="RETRAIN_DEVICE")
+    admin_secret: str = Field("changeme-admin-2024", alias="ADMIN_SECRET")
 
     @field_validator("cors_origins", mode="before")
     @classmethod
