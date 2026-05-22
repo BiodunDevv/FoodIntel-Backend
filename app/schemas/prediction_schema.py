@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.food_schema import NutritionValues

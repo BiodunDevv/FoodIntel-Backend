@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Iterable
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from app.database.mongodb import get_collection
 from app.schemas.user_schema import UserBadge, UserProgressPayload, UserQuest
@@ -55,8 +57,8 @@ def _meal_day(value: datetime | None) -> date | None:
     if value is None:
         return None
     if value.tzinfo is None:
-        value = value.replace(tzinfo=UTC)
-    return value.astimezone(UTC).date()
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).date()
 
 
 def _compute_streak(days: Iterable[date]) -> int:
@@ -64,7 +66,7 @@ def _compute_streak(days: Iterable[date]) -> int:
     if not unique_days:
         return 0
 
-    today = datetime.now(UTC).date()
+    today = datetime.now(timezone.utc).date()
     if unique_days[0] not in {today, today - timedelta(days=1)}:
         return 0
 
@@ -111,7 +113,7 @@ async def build_user_progress(user_id: str) -> UserProgressPayload:
     correction_count = sum(1 for feedback in feedback_items if not feedback.get("is_correct"))
     confirmation_count = feedback_count - correction_count
 
-    today = datetime.now(UTC).date()
+    today = datetime.now(timezone.utc).date()
     meals_today = [
         meal for meal in meal_logs if _meal_day(meal.get("created_at")) == today
     ]
@@ -145,7 +147,9 @@ async def build_user_progress(user_id: str) -> UserProgressPayload:
             unlocked=metrics[badge["metric"]] >= badge["target"],
             progress_current=min(metrics[badge["metric"]], badge["target"]),
             progress_target=badge["target"],
-            unlocked_at=datetime.now(UTC) if metrics[badge["metric"]] >= badge["target"] else None,
+            unlocked_at=datetime.now(timezone.utc)
+            if metrics[badge["metric"]] >= badge["target"]
+            else None,
         )
         for badge in BADGE_DEFINITIONS
     ]
