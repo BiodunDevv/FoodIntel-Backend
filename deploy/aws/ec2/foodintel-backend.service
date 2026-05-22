@@ -7,8 +7,7 @@ Type=simple
 User=ec2-user
 Group=ec2-user
 WorkingDirectory=/home/ec2-user/foodintel-backend
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-ExecStart=/home/ec2-user/foodintel-backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 80
+ExecStart=/home/ec2-user/foodintel-backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
 Environment=PYTHONUNBUFFERED=1
